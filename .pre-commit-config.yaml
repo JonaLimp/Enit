@@ -1,0 +1,21 @@
+# .pre-commit-config.yaml
+
+# Define the hooks to run before commits
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1  # Use the latest stable version
+    hooks:
+      - id: trailing-whitespace  # Removes any trailing whitespace
+      - id: end-of-file-fixer    # Ensures the file ends with a newline
+      - id: check-yaml           # Validates YAML syntax
+      - id: check-added-large-files  # Warns if a large file is committed
+
+  - repo: https://github.com/psf/black
+    rev: 22.3.0  # Use the latest stable version
+    hooks:
+      - id: black  # Formats Python code using Black
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0  # Use the latest stable version
+    hooks:
+      - id: flake8
