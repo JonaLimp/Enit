@@ -1,12 +1,10 @@
 import os
 import requests
+from .models import Region, EmissionRecord
+from django.utils import timezone
 
 
-def test():
-    return ""
-
-
-def fetch_emissions_data(region_code: str):
+def fetch_emissions_data(region_code: str) -> None:
     api_key: str = os.getenv("ELECTRICITY_MAP_API_KEY")
     headers = {"Authorization": f"Bearer {api_key}"}
     url = (
@@ -18,6 +16,18 @@ def fetch_emissions_data(region_code: str):
 
     if response.status_code == 200:
         data = response.json()
-        print(data)
+
+        if "carbonIntensity" in data:
+            region, _ = Region.objects.get_or_create(
+                code=region_code, defaults={"name": data.get("zoneName", region_code)}
+            )
+            EmissionRecord.objects.create(
+                region=region,
+                carbon_intensity=data["carbonIntensity"],
+                timestamp=timezone.now(),
+            )
     else:
-        print(f"Failed to fetch data: {response.status_code}")
+        print(
+            f"Failed to fetch data for region \
+                {region_code}: {response.status_code}"
+        )

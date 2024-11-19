@@ -13,7 +13,7 @@ class Region(models.Model):
 
 class EmissionRecord(models.Model):
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
-    carbon_intesity: float = models.FloatField()
+    carbon_intensity: float = models.FloatField()
     timestamp = models.DateField()
 
     class Meta:
