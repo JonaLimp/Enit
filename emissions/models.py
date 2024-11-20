@@ -1,7 +1,5 @@
 from django.db import models
 
-# Create your models here.
-
 
 class Region(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -14,7 +12,7 @@ class Region(models.Model):
 class EmissionRecord(models.Model):
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     carbon_intensity: float = models.FloatField()
-    timestamp = models.DateField()
+    timestamp = models.DateTimeField(null=False, blank=False)
 
     class Meta:
         unique_together = ("region", "timestamp")
