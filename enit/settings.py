@@ -131,3 +131,11 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Celery configurations
+CELERY_BROKER_URL = "redis://localhost:6380/0"  # URL for the Redis broker
+CELERY_RESULT_BACKEND = "redis://localhost:6380/0"  # Store results in Redis
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
