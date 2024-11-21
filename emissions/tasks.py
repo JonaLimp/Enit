@@ -5,8 +5,10 @@ import requests
 from .models import Region, EmissionRecord
 from django.utils import timezone
 from datetime import timezone as tz
+from celery import shared_task
 
 
+@shared_task
 def fetch_emissions_data(region_code: str) -> None:
     api_key: str = os.getenv("ELECTRICITY_MAP_API_KEY")
     headers = {"Authorization": f"Bearer {api_key}"}
