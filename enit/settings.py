@@ -31,7 +31,7 @@ load_dotenv()
 
 # Access the environment variable
 ELECTRICITY_MAP_API_KEY = os.getenv("ELECTRICITY_MAP_API_KEY")
-
+SECRET_KEY = os.getenv("SECRET_KEY")
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "emissions",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -97,13 +98,18 @@ AUTH_PASSWORD_VALIDATORS = [
         ),
     },
     {
-        "NAME": ("django.contrib.auth.password" "_validation.MinimumLengthValidator"),
+        "NAME": (
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": ("django.contrib.auth.password" "validation.CommonPasswordValidator"),
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        "NAME": ("django.contrib.auth.password_validation" ".NumericPasswordValidator"),
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -133,9 +139,13 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Celery configurations
-CELERY_BROKER_URL = "redis://localhost:6380/0"  # URL for the Redis broker
-CELERY_RESULT_BACKEND = "redis://localhost:6380/0"  # Store results in Redis
+CELERY_BROKER_URL = "redis://localhost:6379/0"  # URL for the Redis broker
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"  # Store results in Redis
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+
+# settings.py
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
