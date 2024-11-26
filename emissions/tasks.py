@@ -10,6 +10,16 @@ from celery import shared_task
 
 @shared_task
 def fetch_emissions_data(region_code: str) -> None:
+    """
+    Fetch the latest carbon intensity for a given region code from the
+    ElectricityMap API and stores it in the database.
+
+    Args:
+        region_code (str): The region code to fetch data for.
+
+    Returns:
+        None
+    """
     api_key: str = os.getenv("ELECTRICITY_MAP_API_KEY")
     headers = {"Authorization": f"Bearer {api_key}"}
     url = (
@@ -41,14 +51,17 @@ def fetch_emissions_data(region_code: str) -> None:
         )
 
 
-def fetch_historical_data(region_code, time_range_hours=24, time_step="hour"):
+def fetch_historical_data(
+    region_code: str, time_range_hours: int = 24, time_step: str = "hour"
+) -> None:
     """
     Fetches historical carbon intensity data for the given region.
 
     :param region_code: Region code (e.g., 'DE' for Germany).
     :param time_range_hours: The number of hours back
-    from the current time to fetch data.
+    from the current time to fetch data. Defaults to 24.
     :param time_step: The granularity of the data ('hour', 'minute', 'day').
+    Defaults to 'hour'.
     """
 
     api_key = os.getenv("ELECTRICITY_MAP_API_KEY")
