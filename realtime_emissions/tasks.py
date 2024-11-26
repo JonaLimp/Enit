@@ -2,14 +2,14 @@ from datetime import datetime, timedelta
 import os
 from venv import logger
 import requests
-from .models import Region, EmissionRecord
+from .models import Region, RealtimeEmissionRecord
 from django.utils import timezone
 from datetime import timezone as tz
 from celery import shared_task
 
 
 @shared_task
-def fetch_emissions_data(region_code: str) -> None:
+def fetch_realtime_emissions_data(region_code: str) -> None:
     """
     Fetch the latest carbon intensity for a given region code from the
     ElectricityMap API and stores it in the database.
@@ -35,7 +35,7 @@ def fetch_emissions_data(region_code: str) -> None:
         region, _ = Region.objects.get_or_create(
             code=region_code, defaults={"name": data.get("zoneName", region_code)}
         )
-        EmissionRecord.objects.create(
+        RealtimeEmissionRecord.objects.create(
             region=region,
             carbon_intensity=data["carbonIntensity"],
             timestamp=timezone.now(),
@@ -92,10 +92,10 @@ def fetch_historical_data(
             timestamp = datetime.fromtimestamp(entry["timestamp"], tz=tz.utc)
             carbon_intensity = entry["carbonIntensity"]
 
-            if not EmissionRecord.objects.filter(
+            if not RealtimeEmissionRecord.objects.filter(
                 region=region, timestamp=timestamp
             ).exists():
-                EmissionRecord.objects.create(
+                RealtimeEmissionRecord.objects.create(
                     region=region,
                     carbon_intensity=carbon_intensity,
                     timestamp=timestamp,

@@ -21,7 +21,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("emissions/", include("emissions.urls")),
+    path("realtime_emissions/", include("realtime_emissions.urls")),
 ]
 
 if settings.DEBUG:

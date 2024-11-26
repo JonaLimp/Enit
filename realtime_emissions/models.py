@@ -9,7 +9,7 @@ class Region(models.Model):
         return self.name
 
 
-class EmissionRecord(models.Model):
+class RealtimeEmissionRecord(models.Model):
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
     carbon_intensity: float = models.FloatField()
     timestamp = models.DateTimeField(null=False, blank=False)

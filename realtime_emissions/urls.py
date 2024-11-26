@@ -1,10 +1,10 @@
 from django.urls import path
-from emissions import views
+from realtime_emissions import views
 
 urlpatterns = [
     path(
         "dashboard/<str:region_code>/",
-        views.emissions_dashboard,
+        views.realtime_emissions_dashboard,
         name="emissions_dashboard",
     ),
 ]

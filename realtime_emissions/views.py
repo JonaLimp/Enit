@@ -1,11 +1,13 @@
 from django.shortcuts import render
-from .models import EmissionRecord, Region
+from .models import RealtimeEmissionRecord, Region
 
 
 from django.http import HttpRequest, HttpResponse
 
 
-def emissions_dashboard(request: HttpRequest, region_code: str) -> HttpResponse:
+def realtime_emissions_dashboard(
+    request: HttpRequest, region_code: str
+) -> HttpResponse:
     """
     Displays a dashboard for the given region code with the last 24 hours of
     emissions data.
@@ -24,7 +26,7 @@ def emissions_dashboard(request: HttpRequest, region_code: str) -> HttpResponse:
     """
     region = Region.objects.get(code=region_code)
 
-    emissions_data = EmissionRecord.objects.filter(region=region).order_by(
+    emissions_data = RealtimeEmissionRecord.objects.filter(region=region).order_by(
         "-timestamp"
     )[:24]
 

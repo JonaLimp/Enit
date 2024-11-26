@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class EmissionsConfig(AppConfig):
+class RealtimeEmissionsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "emissions"
+    name = "realtime_emissions"

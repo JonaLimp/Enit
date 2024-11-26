@@ -8,4 +8,4 @@ app = Celery("enit")
 
 app.config_from_object("django.conf:settings", namespace="CELERY")
 
-app.autodiscover_tasks(lambda: ["emissions"])
+app.autodiscover_tasks(lambda: ["realtime_emissions"])

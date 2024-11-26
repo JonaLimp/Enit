@@ -4,13 +4,16 @@ from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.utils import timezone
 
-from emissions.models import EmissionRecord, Region
-from emissions.tasks import fetch_emissions_data, fetch_historical_data
+from realtime_emissions.models import RealtimeEmissionRecord, Region
+from realtime_emissions.tasks import (
+    fetch_realtime_emissions_data,
+    fetch_historical_data,
+)
 
 from datetime import timezone as tz
 
 
-class EmissionsDataTestCase(TestCase):
+class RealtimeEmissionsDataTestCase(TestCase):
     @patch("requests.get")
     def test_fetch_emissions_data_success(self, mock_get):
 
@@ -25,9 +28,9 @@ class EmissionsDataTestCase(TestCase):
 
         region_code = "DE"
 
-        fetch_emissions_data(region_code)
+        fetch_realtime_emissions_data(region_code)
 
-        emission_record = EmissionRecord.objects.first()
+        emission_record = RealtimeEmissionRecord.objects.first()
         self.assertIsNotNone(emission_record)
         self.assertEqual(emission_record.carbon_intensity, 100)
 
@@ -40,7 +43,7 @@ class EmissionsDataTestCase(TestCase):
 
         region_code = "DE"
 
-        fetch_emissions_data(region_code)
+        fetch_realtime_emissions_data(region_code)
 
         mock_get.assert_called_once_with(
             "https://api.electricitymap.org/v3/"
@@ -58,13 +61,13 @@ class EmissionsDataTestCase(TestCase):
 
         region_code = "DE"
 
-        fetch_emissions_data(region_code)
+        fetch_realtime_emissions_data(region_code)
 
-        self.assertEqual(EmissionRecord.objects.count(), 0)
+        self.assertEqual(RealtimeEmissionRecord.objects.count(), 0)
 
 
 class TestFetchHistoricalData(TestCase):
-    @patch("emissions.tasks.requests.get")
+    @patch("realtime_emissions.tasks.requests.get")
     def test_fetch_historical_data_success(self, mock_get):
         mock_response_data = {
             "data": [
@@ -85,7 +88,7 @@ class TestFetchHistoricalData(TestCase):
         region = Region.objects.get(code=region_code)
         self.assertEqual(region.name, "Germany")
 
-        records = EmissionRecord.objects.filter(region=region)
+        records = RealtimeEmissionRecord.objects.filter(region=region)
         self.assertEqual(records.count(), 2)
 
         first_record = records.first()
@@ -108,17 +111,17 @@ class TestFetchHistoricalData(TestCase):
 
         self.assertEqual(records.count(), 2)
 
-    @patch("emissions.tasks.requests.get")
+    @patch("realtime_emissions.tasks.requests.get")
     def test_fetch_historical_data_api_failure(self, mock_get):
         mock_get.return_value.status_code = 500  # Internal Server Error
 
         region_code = "DE"
         fetch_historical_data(region_code, time_range_hours=2, time_step="hour")
 
-        records = EmissionRecord.objects.filter(region__code=region_code)
+        records = RealtimeEmissionRecord.objects.filter(region__code=region_code)
         self.assertEqual(records.count(), 0)
 
-    @patch("emissions.tasks.requests.get")
+    @patch("realtime_emissions.tasks.requests.get")
     def test_fetch_historical_data_empty_response(self, mock_get):
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {"data": [], "zoneName": "Germany"}
@@ -126,5 +129,5 @@ class TestFetchHistoricalData(TestCase):
         region_code = "DE"
         fetch_historical_data(region_code, time_range_hours=2, time_step="hour")
 
-        records = EmissionRecord.objects.filter(region__code=region_code)
+        records = RealtimeEmissionRecord.objects.filter(region__code=region_code)
         self.assertEqual(records.count(), 0)
