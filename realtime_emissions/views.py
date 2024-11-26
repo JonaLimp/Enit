@@ -32,6 +32,6 @@ def realtime_emissions_dashboard(
 
     return render(
         request,
-        "emissions/dashboard.html",
+        "realtime_emissions/dashboard.html",
         {"region": region, "emissions_data": emissions_data},
     )

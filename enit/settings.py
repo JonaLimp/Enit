@@ -155,3 +155,10 @@ INSTALLED_APPS += ["debug_toolbar"]
 MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
 INTERNAL_IPS = ["127.0.0.1"]
+
+CELERY_BEAT_SCHEDULE = {
+    "fetch-realtime-emissions-every-hour": {
+        "task": "emissions.tasks.fetch_realtime_emissions",
+        "schedule": 86400.0,
+    },
+}
