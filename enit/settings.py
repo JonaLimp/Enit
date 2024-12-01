@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "realtime_emissions",
+    "environmental_data",
     "django_celery_beat",
 ]
 
@@ -158,7 +158,7 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 CELERY_BEAT_SCHEDULE = {
     "fetch-realtime-emissions-every-hour": {
-        "task": "emissions.tasks.fetch_realtime_emissions",
+        "task": "environmental_data.tasks.fetch_realtime_emissions",
         "schedule": 86400.0,
     },
 }

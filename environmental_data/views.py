@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import RealtimeEmissionRecord, Region
+from .models import RealtimeEnvironmentalRecord, Region
 
 
 from django.http import HttpRequest, HttpResponse
@@ -26,7 +26,7 @@ def realtime_emissions_dashboard(
     """
     region = Region.objects.get(code=region_code)
 
-    emissions_data = RealtimeEmissionRecord.objects.filter(region=region).order_by(
+    emissions_data = RealtimeEnvironmentalRecord.objects.filter(region=region).order_by(
         "-timestamp"
     )[:24]
 

@@ -2,14 +2,23 @@ from datetime import datetime, timedelta
 import os
 from venv import logger
 import requests
-from .models import Region, RealtimeEmissionRecord
+from .models import (
+    Region,
+    Sector,
+    Substance,
+    HistoricalEnvironmentalRecord,
+    RealtimeEnvironmentalRecord,
+)
 from django.utils import timezone
 from datetime import timezone as tz
 from celery import shared_task
 
 
+from typing import Optional
+
+
 @shared_task
-def fetch_realtime_emissions_data(region_code: str) -> None:
+def fetch_realtime_carbon_data(region_code: str) -> None:
     """
     Fetch the latest carbon intensity for a given region code from the
     ElectricityMap API and stores it in the database.
@@ -20,24 +29,28 @@ def fetch_realtime_emissions_data(region_code: str) -> None:
     Returns:
         None
     """
-    api_key: str = os.getenv("ELECTRICITY_MAP_API_KEY")
-    headers = {"Authorization": f"Bearer {api_key}"}
-    url = (
+    api_key: Optional[str] = os.getenv("ELECTRICITY_MAP_API_KEY")
+    headers: dict = {"Authorization": f"Bearer {api_key}"}
+    url: str = (
         "https://api.electricitymap.org/"
         f"v3/carbon-intensity/latest?zone={region_code}"
     )
 
-    response = requests.get(url, headers=headers)
-    data = response.json()
+    response: requests.Response = requests.get(url, headers=headers)
+    data: dict = response.json()
 
     if response.status_code == 200 and "carbonIntensity" in data:
 
         region, _ = Region.objects.get_or_create(
             code=region_code, defaults={"name": data.get("zoneName", region_code)}
         )
-        RealtimeEmissionRecord.objects.create(
+        substance, _ = Substance.objects.get_or_create(name="CO2")
+        sector, _ = Sector.objects.get_or_create(name="Total Emissions")
+        RealtimeEnvironmentalRecord.objects.create(
             region=region,
-            carbon_intensity=data["carbonIntensity"],
+            substance=substance,
+            sector=sector,
+            value=data["carbonIntensity"],
             timestamp=timezone.now(),
         )
         print(
@@ -51,7 +64,7 @@ def fetch_realtime_emissions_data(region_code: str) -> None:
         )
 
 
-def fetch_historical_data(
+def fetch_recent_carbon_data(
     region_code: str, time_range_hours: int = 24, time_step: str = "hour"
 ) -> None:
     """
@@ -65,11 +78,14 @@ def fetch_historical_data(
     """
 
     api_key = os.getenv("ELECTRICITY_MAP_API_KEY")
+
     headers = {"Authorization": f"Bearer {api_key}"}
 
     now = datetime.now()
-    to_timestamp = int(now.timestamp())
+
     from_timestamp = int((now - timedelta(hours=time_range_hours)).timestamp())
+
+    to_timestamp = int(now.timestamp())
 
     url = f"https://api.electricitymap.org/v3/carbon-intensity/\
         history?zone={region_code}&from={from_timestamp}&to={to_timestamp}\
@@ -84,21 +100,27 @@ def fetch_historical_data(
             code=region_code, defaults={"name": data.get("zoneName", region_code)}
         )
 
+        substance, _ = Substance.objects.get_or_create(name="CO2")
+        sector, _ = Sector.objects.get_or_create(name="Total Emissions")
+
         for entry in data["data"]:
             if entry["timestamp"] is None:
                 logger.warning("Received None timestamp from the API. Skipping entry.")
                 continue
 
             timestamp = datetime.fromtimestamp(entry["timestamp"], tz=tz.utc)
+
             carbon_intensity = entry["carbonIntensity"]
 
-            if not RealtimeEmissionRecord.objects.filter(
+            if not HistoricalEnvironmentalRecord.objects.filter(
                 region=region, timestamp=timestamp
             ).exists():
-                RealtimeEmissionRecord.objects.create(
+                HistoricalEnvironmentalRecord.objects.create(
                     region=region,
-                    carbon_intensity=carbon_intensity,
+                    substance=substance,
+                    value=carbon_intensity,
                     timestamp=timestamp,
+                    sector=sector,
                 )
 
         print(

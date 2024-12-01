@@ -1,0 +1,8 @@
+{
+    "CO2": [
+        "Carbon Dioxide", "CO₂", "CO2 (Emissions)", "Carbon Dioxide (CO2)", "carbonIntensity", "carbon_intensity"
+    ],
+    "CH4": ["Methane", "CH₄", "Methane Gas"],
+    "N2O": ["Nitrous Oxide", "N2O Gas"],
+    "SO2": ["Sulfur Dioxide", "SO₂"]
+}

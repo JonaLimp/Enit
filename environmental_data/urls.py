@@ -1,5 +1,5 @@
 from django.urls import path
-from realtime_emissions import views
+from environmental_data import views
 
 urlpatterns = [
     path(
