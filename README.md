@@ -5,7 +5,7 @@ Enit - Environmental Impact Tracker
 
 
 
-Enit (Environmental Impact Tracker) is a comprehensive full-stack web application designed to collect, analyze, and visualize key environmental metrics, such as CO₂ emissions, air quality, and social engagement. The project provides real-time data collection, storage, and insightful visualizations for users to track environmental impact trends.
+Enit (Environmental Impact Tracker) is a comprehensive full-stack web application designed to collect, analyze, and visualize key environmental metrics, such as CO₂ emissions, air quality and other related data. The project provides real-time data collection, storage, and insightful visualizations for users to track environmental impact trends.
 Key Features:
 
     Backend: Built with Django, providing a robust RESTful API to manage and serve data.
