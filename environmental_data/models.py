@@ -68,15 +68,10 @@ class EnvironmentalRecord(models.Model):
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
 
     value = models.FloatField()
-    timestamp = models.DateTimeField(null=False, blank=False)
 
     class Meta:
         abstract = True
         unique_together = ("region", "substance", "timestamp")
-        ordering = ["-timestamp"]
-
-    def __str__(self):
-        return f"{self.region} - {self.substance} - {self.timestamp}"
 
 
 class RealtimeEnvironmentalRecord(EnvironmentalRecord):
@@ -84,12 +79,27 @@ class RealtimeEnvironmentalRecord(EnvironmentalRecord):
     Model for historical environmental data.
     """
 
+    timestamp = models.DateTimeField(null=False, blank=False)
     record_type = "real_time"
+
+    class Meta:
+        ordering = ["-timestamp"]
+
+    def __str__(self):
+        return f"{self.region} - {self.substance} - {self.timestamp}"
 
 
 class HistoricalEnvironmentalRecord(EnvironmentalRecord):
     """
+
     Model for historical environmental data.
     """
 
+    year = models.IntegerField()
     record_type = "historical"
+
+    class Meta:
+        ordering = ["-year"]
+
+    def __str__(self):
+        return f"{self.region} - {self.substance} - {self.year}"

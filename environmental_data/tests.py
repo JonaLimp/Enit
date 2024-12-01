@@ -92,7 +92,7 @@ class TestFetchRecentCarbonlData(TestCase):
         region = Region.objects.get(code=region_code)
         self.assertEqual(region.name, "Germany")
 
-        records = HistoricalEnvironmentalRecord.objects.filter(region=region)
+        records = RealtimeEnvironmentalRecord.objects.filter(region=region)
         self.assertEqual(records.count(), 2)
 
         first_record = records.first()

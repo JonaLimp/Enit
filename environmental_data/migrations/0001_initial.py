@@ -95,8 +95,6 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ["-timestamp"],
-                "abstract": False,
-                "unique_together": {("region", "substance", "timestamp")},
             },
         ),
         migrations.CreateModel(
@@ -112,7 +110,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("value", models.FloatField()),
-                ("timestamp", models.DateTimeField()),
+                ("year", models.IntegerField()),
                 (
                     "region",
                     models.ForeignKey(
@@ -136,9 +134,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": ["-timestamp"],
-                "abstract": False,
-                "unique_together": {("region", "substance", "timestamp")},
+                "ordering": ["-year"],
             },
         ),
     ]

@@ -6,7 +6,6 @@ from .models import (
     Region,
     Sector,
     Substance,
-    HistoricalEnvironmentalRecord,
     RealtimeEnvironmentalRecord,
 )
 from django.utils import timezone
@@ -112,10 +111,10 @@ def fetch_recent_carbon_data(
 
             carbon_intensity = entry["carbonIntensity"]
 
-            if not HistoricalEnvironmentalRecord.objects.filter(
+            if not RealtimeEnvironmentalRecord.objects.filter(
                 region=region, timestamp=timestamp
             ).exists():
-                HistoricalEnvironmentalRecord.objects.create(
+                RealtimeEnvironmentalRecord.objects.create(
                     region=region,
                     substance=substance,
                     value=carbon_intensity,
