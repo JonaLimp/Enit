@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "environmental_data",
     "django_celery_beat",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
