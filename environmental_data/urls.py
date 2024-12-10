@@ -7,4 +7,14 @@ urlpatterns = [
         views.realtime_emissions_dashboard,
         name="emissions_dashboard",
     ),
+    path(
+        "api/historical-data/",
+        views.HistoricalDataView.as_view(),
+        name="historical-data",
+    ),
+    path(
+        "api/historical-data/<str:region_code>/",
+        views.HistoricalDataView.as_view(),
+        name="historical-data-region",
+    ),
 ]
