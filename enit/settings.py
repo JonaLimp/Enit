@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "environmental_data",
     "django_celery_beat",
     "rest_framework",
+    "django_filters",
 ]
 
 MIDDLEWARE = [

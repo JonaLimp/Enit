@@ -13,9 +13,9 @@ class Command(BaseCommand):
     help = "Import emissions data from a CSV file."
 
     def handle(self, *args, **kwargs):
-
         file_path = os.getcwd() + "/data/datasets/IEA_EDGAR_CO2_1970_2023_cleaned.csv"
         df = pd.read_csv(file_path)
+        records_to_create = []
 
         for _, row in df.iterrows():
             region, _ = Region.objects.get_or_create(
@@ -24,7 +24,6 @@ class Command(BaseCommand):
 
             substance, _ = Substance.objects.get_or_create(name="CO2")
             sector, _ = Sector.objects.get_or_create(name=row["sector"])
-            records_to_create = []
 
             for year in range(1970, 2023):
                 column_name = str(year)
@@ -41,7 +40,7 @@ class Command(BaseCommand):
                         )
                     )
 
-            if records_to_create:
-                HistoricalEnvironmentalRecord.objects.bulk_create(records_to_create)
+        if records_to_create:
+            HistoricalEnvironmentalRecord.objects.bulk_create(records_to_create)
 
         self.stdout.write(self.style.SUCCESS("Emissions data imported successfully."))
