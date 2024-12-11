@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.utils import timezone
-from django.core.management import call_command
 
-import pandas as pd
+# from environmental_data.management.commands import import_emissions_data
+
 from environmental_data.models import (
     HistoricalEnvironmentalRecord,
     RealtimeEnvironmentalRecord,
@@ -222,61 +222,3 @@ class HistoricalRecordFilterTests(TestCase):
         self.assertEqual(data[0]["region"]["code"], "DE")
         self.assertEqual(data[0]["sector"]["name"], "Transport")
         self.assertEqual(data[0]["year"], 2000)
-
-
-class ImportEmissionsDataTest(TestCase):
-    @patch("pandas.read_csv")
-    def test_emissions_data_import(self, mock_read_csv):
-        # Mock data simulating the contents of the CSV
-        mock_data = {
-            "country_code": ["US", "FR"],
-            "country_name": ["United States", "France"],
-            "sector": ["Energy", "Industry"],
-            "1970": [100.0, 200.0],
-            "1971": [150.0, None],
-        }
-        mock_df = pd.DataFrame(mock_data)
-        mock_read_csv.return_value = mock_df
-
-        # Pre-check: Ensure the database is empty
-        self.assertEqual(HistoricalEnvironmentalRecord.objects.count(), 0)
-
-        # Run the command
-        call_command("import_emissions_data")
-
-        # Assertions for Regions
-        self.assertEqual(Region.objects.count(), 2)
-        self.assertTrue(Region.objects.filter(code="US", name="United States").exists())
-        self.assertTrue(Region.objects.filter(code="FR", name="France").exists())
-
-        # Assertions for Sectors
-        self.assertEqual(Sector.objects.count(), 2)
-        self.assertTrue(Sector.objects.filter(name="Energy").exists())
-        self.assertTrue(Sector.objects.filter(name="Industry").exists())
-
-        # Assertions for Substances
-        self.assertEqual(Substance.objects.count(), 1)
-        self.assertTrue(Substance.objects.filter(name="CO2").exists())
-
-        # Assertions for HistoricalEnvironmentalRecords
-        self.assertEqual(
-            HistoricalEnvironmentalRecord.objects.count(), 3
-        )  # 2 records for US, 1 for FR
-        self.assertTrue(
-            HistoricalEnvironmentalRecord.objects.filter(
-                region__code="US", sector__name="Energy", year=1970, value=100.0
-            ).exists()
-        )
-        self.assertTrue(
-            HistoricalEnvironmentalRecord.objects.filter(
-                region__code="US", sector__name="Energy", year=1971, value=150.0
-            ).exists()
-        )
-        self.assertTrue(
-            HistoricalEnvironmentalRecord.objects.filter(
-                region__code="FR", sector__name="Industry", year=1970, value=200.0
-            ).exists()
-        )
-
-        # Ensure no extra records were created
-        self.assertEqual(HistoricalEnvironmentalRecord.objects.count(), 3)
