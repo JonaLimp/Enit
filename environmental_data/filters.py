@@ -4,8 +4,8 @@ from .models import HistoricalEnvironmentalRecord
 
 class HistoricalDataFilter(django_filters.FilterSet):
 
-    region_code = django_filters.CharFilter(
-        field_name="region__code", lookup_expr="iexact"
+    country = django_filters.CharFilter(
+        field_name="country__code", lookup_expr="iexact"
     )
 
     substance = django_filters.CharFilter(
@@ -20,4 +20,4 @@ class HistoricalDataFilter(django_filters.FilterSet):
 
     class Meta:
         model = HistoricalEnvironmentalRecord
-        fields = ["region_code", "substance", "sector", "start_year", "end_year"]
+        fields = ["country", "substance", "sector", "start_year", "end_year"]

@@ -3,7 +3,7 @@ from pathlib import Path
 from django.db import models
 
 
-class Region(models.Model):
+class Country(models.Model):
     """
     Represents a geographic area (e.g., a country or state).
     """
@@ -63,7 +63,7 @@ class EnvironmentalRecord(models.Model):
     Base model for environmental records, shared across different data types.
     """
 
-    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
     substance = models.ForeignKey(Substance, on_delete=models.CASCADE)
     sector = models.ForeignKey(Sector, on_delete=models.CASCADE)
 
@@ -71,7 +71,7 @@ class EnvironmentalRecord(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = ("region", "substance", "timestamp")
+        unique_together = ("country", "substance", "timestamp")
 
 
 class RealtimeEnvironmentalRecord(EnvironmentalRecord):
@@ -86,7 +86,7 @@ class RealtimeEnvironmentalRecord(EnvironmentalRecord):
         ordering = ["-timestamp"]
 
     def __str__(self):
-        return f"{self.region} - {self.substance} - {self.timestamp}"
+        return f"{self.country} - {self.substance} - {self.timestamp}"
 
 
 class HistoricalEnvironmentalRecord(EnvironmentalRecord):
@@ -102,4 +102,4 @@ class HistoricalEnvironmentalRecord(EnvironmentalRecord):
         ordering = ["-year"]
 
     def __str__(self):
-        return f"{self.region} - {self.substance} - {self.year}"
+        return f"{self.country} - {self.substance} - {self.year}"

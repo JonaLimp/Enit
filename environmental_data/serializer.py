@@ -1,15 +1,15 @@
 from rest_framework import serializers
 from .models import (
     HistoricalEnvironmentalRecord,
-    Region,
+    Country,
     Sector,
     Substance,
 )
 
 
-class RegionSerializer(serializers.ModelSerializer):
+class CountrySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Region
+        model = Country
         fields = "__all__"
 
 
@@ -26,7 +26,7 @@ class SubstanceSerializer(serializers.ModelSerializer):
 
 
 class HistoricalEnvironmentalRecordSerializer(serializers.ModelSerializer):
-    region = RegionSerializer()
+    country = CountrySerializer()
     sector = SectorSerializer()
     substance = SubstanceSerializer()
 

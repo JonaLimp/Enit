@@ -1,10 +1,17 @@
 from django.shortcuts import render
+from django.views import View
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 
 from .filters import HistoricalDataFilter
-from .models import HistoricalEnvironmentalRecord, RealtimeEnvironmentalRecord, Region
+from .models import (
+    HistoricalEnvironmentalRecord,
+    RealtimeEnvironmentalRecord,
+    Country,
+    Sector,
+    Substance,
+)
 from environmental_data.serializer import HistoricalEnvironmentalRecordSerializer
 
 
@@ -28,7 +35,7 @@ def realtime_emissions_dashboard(
         given region
     """
 
-    region = Region.objects.get(code=region_code)
+    region = Country.objects.get(code=region_code)
 
     emissions_data = RealtimeEnvironmentalRecord.objects.filter(region=region).order_by(
         "-timestamp"
@@ -46,3 +53,33 @@ class HistoricalDataView(generics.ListAPIView):
     serializer_class = HistoricalEnvironmentalRecordSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = HistoricalDataFilter
+
+
+class CountryListView(View):
+    """
+    View to fetch all unique regions.
+    """
+
+    def get(self, request, *args, **kwargs):
+        countries = Country.objects.values("name").distinct()
+        return JsonResponse(list(countries), safe=False)
+
+
+class SectorListView(View):
+    """
+    View to fetch all unique sectors.
+    """
+
+    def get(self, request, *args, **kwargs):
+        sectors = Sector.objects.values("name").distinct()
+        return JsonResponse(list(sectors), safe=False)
+
+
+class SubstanceListView(View):
+    """
+    View to fetch all unique substances.
+    """
+
+    def get(self, request, *args, **kwargs):
+        substances = Substance.objects.values("name").distinct()
+        return JsonResponse(list(substances), safe=False)

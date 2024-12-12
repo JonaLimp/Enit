@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 import pandas as pd
 from environmental_data.models import (
     HistoricalEnvironmentalRecord,
-    Region,
+    Country,
     Sector,
     Substance,
 )
@@ -18,7 +18,7 @@ class Command(BaseCommand):
         records_to_create = []
 
         for _, row in df.iterrows():
-            region, _ = Region.objects.get_or_create(
+            country, _ = Country.objects.get_or_create(
                 code=row["country_code"], defaults={"name": row["country_name"]}
             )
 
@@ -32,7 +32,7 @@ class Command(BaseCommand):
                 if not pd.isna(emission_value):
                     records_to_create.append(
                         HistoricalEnvironmentalRecord(
-                            region=region,
+                            country=country,
                             substance=substance,
                             sector=sector,
                             value=emission_value,

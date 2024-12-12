@@ -9,7 +9,7 @@ from django.utils import timezone
 from environmental_data.models import (
     HistoricalEnvironmentalRecord,
     RealtimeEnvironmentalRecord,
-    Region,
+    Country,
     Sector,
     Substance,
 )
@@ -34,9 +34,9 @@ class RealtimeCarbonDataTestCase(TestCase):
 
         mock_get.return_value = mock_response
 
-        region_code = "DE"
+        country_code = "DE"
 
-        fetch_realtime_carbon_data(region_code)
+        fetch_realtime_carbon_data(country_code)
 
         emission_record = RealtimeEnvironmentalRecord.objects.first()
         self.assertIsNotNone(emission_record)
@@ -49,13 +49,13 @@ class RealtimeCarbonDataTestCase(TestCase):
 
         mock_get.return_value = mock_response
 
-        region_code = "DE"
+        country_code = "DE"
 
-        fetch_realtime_carbon_data(region_code)
+        fetch_realtime_carbon_data(country_code)
 
         mock_get.assert_called_once_with(
             "https://api.electricitymap.org/v3/"
-            f"carbon-intensity/latest?zone={region_code}",
+            f"carbon-intensity/latest?zone={country_code}",
             headers={"Authorization": f"Bearer {os.getenv('ELECTRICITY_MAP_API_KEY')}"},
         )
 
@@ -67,9 +67,9 @@ class RealtimeCarbonDataTestCase(TestCase):
 
         mock_get.return_value = mock_response
 
-        region_code = "DE"
+        country_code = "DE"
 
-        fetch_realtime_carbon_data(region_code)
+        fetch_realtime_carbon_data(country_code)
 
         self.assertEqual(RealtimeEnvironmentalRecord.objects.count(), 0)
 
@@ -90,13 +90,13 @@ class TestFetchRecentCarbonlData(TestCase):
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = mock_response_data
 
-        region_code = "DE"
-        fetch_recent_carbon_data(region_code, time_range_hours=2, time_step="hour")
+        country_code = "DE"
+        fetch_recent_carbon_data(country_code, time_range_hours=2, time_step="hour")
 
-        region = Region.objects.get(code=region_code)
-        self.assertEqual(region.name, "Germany")
+        country = Country.objects.get(code=country_code)
+        self.assertEqual(country.name, "Germany")
 
-        records = RealtimeEnvironmentalRecord.objects.filter(region=region)
+        records = RealtimeEnvironmentalRecord.objects.filter(country=country)
         self.assertEqual(records.count(), 2)
 
         first_record = records.first()
@@ -123,10 +123,12 @@ class TestFetchRecentCarbonlData(TestCase):
     def test_fetch_recent_carbon_data_api_failure(self, mock_get):
         mock_get.return_value.status_code = 500  # Internal Server Error
 
-        region_code = "DE"
-        fetch_recent_carbon_data(region_code, time_range_hours=2, time_step="hour")
+        country_code = "DE"
+        fetch_recent_carbon_data(country_code, time_range_hours=2, time_step="hour")
 
-        records = HistoricalEnvironmentalRecord.objects.filter(region__code=region_code)
+        records = HistoricalEnvironmentalRecord.objects.filter(
+            country__code=country_code
+        )
         self.assertEqual(records.count(), 0)
 
     @patch("requests.get")
@@ -134,18 +136,20 @@ class TestFetchRecentCarbonlData(TestCase):
         mock_get.return_value.status_code = 200
         mock_get.return_value.json.return_value = {"data": [], "zoneName": "Germany"}
 
-        region_code = "DE"
-        fetch_recent_carbon_data(region_code, time_range_hours=2, time_step="hour")
+        country_code = "DE"
+        fetch_recent_carbon_data(country_code, time_range_hours=2, time_step="hour")
 
-        records = HistoricalEnvironmentalRecord.objects.filter(region__code=region_code)
+        records = HistoricalEnvironmentalRecord.objects.filter(
+            country__code=country_code
+        )
         self.assertEqual(records.count(), 0)
 
 
 class HistoricalRecordFilterTests(TestCase):
     def setUp(self):
-        # Create Regions
-        self.region1 = Region.objects.create(name="Germany", code="DE")
-        self.region2 = Region.objects.create(name="France", code="FR")
+        # Create Countries
+        self.country1 = Country.objects.create(name="Germany", code="DE")
+        self.country2 = Country.objects.create(name="France", code="FR")
 
         # Create Sectors
         self.sector1 = Sector.objects.create(name="Energy")
@@ -157,35 +161,35 @@ class HistoricalRecordFilterTests(TestCase):
 
         # Create Historical Records
         HistoricalEnvironmentalRecord.objects.create(
-            region=self.region1,
+            country=self.country1,
             sector=self.sector1,
             substance=self.substance1,
             year=1990,
             value=100.0,
         )
         HistoricalEnvironmentalRecord.objects.create(
-            region=self.region1,
+            country=self.country1,
             sector=self.sector2,
             substance=self.substance2,
             year=2000,
             value=150.0,
         )
         HistoricalEnvironmentalRecord.objects.create(
-            region=self.region2,
+            country=self.country2,
             sector=self.sector1,
             substance=self.substance1,
             year=1985,
             value=200.0,
         )
 
-    def test_filter_by_region_code(self):
+    def test_filter_by_country_code(self):
         response = self.client.get(
-            "/environmental_data/api/historical-data/", {"region_code": "DE"}
+            "/environmental_data/api/historical-data/", {"country": "DE"}
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(len(data), 2)  # Two records for region DE
-        self.assertTrue(all(record["region"]["code"] == "DE" for record in data))
+        self.assertEqual(len(data), 2)  # Two records for country DE
+        self.assertTrue(all(record["country"]["code"] == "DE" for record in data))
 
     def test_filter_by_sector(self):
         response = self.client.get(
@@ -210,7 +214,7 @@ class HistoricalRecordFilterTests(TestCase):
         response = self.client.get(
             "/environmental_data/api/historical-data/",
             {
-                "region_code": "DE",
+                "country_code": "DE",
                 "sector": "Transport",
                 "start_year": 1990,
                 "end_year": 2010,
@@ -219,6 +223,6 @@ class HistoricalRecordFilterTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(len(data), 1)  # One record matching all criteria
-        self.assertEqual(data[0]["region"]["code"], "DE")
+        self.assertEqual(data[0]["country"]["code"], "DE")
         self.assertEqual(data[0]["sector"]["name"], "Transport")
         self.assertEqual(data[0]["year"], 2000)

@@ -3,7 +3,7 @@ import os
 from venv import logger
 import requests
 from .models import (
-    Region,
+    Country,
     Sector,
     Substance,
     RealtimeEnvironmentalRecord,
@@ -17,13 +17,13 @@ from typing import Optional
 
 
 @shared_task
-def fetch_realtime_carbon_data(region_code: str) -> None:
+def fetch_realtime_carbon_data(country_code: str) -> None:
     """
-    Fetch the latest carbon intensity for a given region code from the
+    Fetch the latest carbon intensity for a given country code from the
     ElectricityMap API and stores it in the database.
 
     Args:
-        region_code (str): The region code to fetch data for.
+        country_code (str): The country code to fetch data for.
 
     Returns:
         None
@@ -32,7 +32,7 @@ def fetch_realtime_carbon_data(region_code: str) -> None:
     headers: dict = {"Authorization": f"Bearer {api_key}"}
     url: str = (
         "https://api.electricitymap.org/"
-        f"v3/carbon-intensity/latest?zone={region_code}"
+        f"v3/carbon-intensity/latest?zone={country_code}"
     )
 
     response: requests.Response = requests.get(url, headers=headers)
@@ -40,36 +40,36 @@ def fetch_realtime_carbon_data(region_code: str) -> None:
 
     if response.status_code == 200 and "carbonIntensity" in data:
 
-        region, _ = Region.objects.get_or_create(
-            code=region_code, defaults={"name": data.get("zoneName", region_code)}
+        country, _ = Country.objects.get_or_create(
+            code=country_code, defaults={"name": data.get("zoneName", country_code)}
         )
         substance, _ = Substance.objects.get_or_create(name="CO2")
         sector, _ = Sector.objects.get_or_create(name="Total Emissions")
         RealtimeEnvironmentalRecord.objects.create(
-            region=region,
+            country=country,
             substance=substance,
             sector=sector,
             value=data["carbonIntensity"],
             timestamp=timezone.now(),
         )
         print(
-            f"Fetched data for region \
-                {region_code}: {response.status_code}"
+            f"Fetched data for country \
+                {country_code}: {response.status_code}"
         )
     else:
         print(
-            f"Failed to fetch data for region \
-                {region_code}: {response.status_code}"
+            f"Failed to fetch data for country \
+                {country_code}: {response.status_code}"
         )
 
 
 def fetch_recent_carbon_data(
-    region_code: str, time_range_hours: int = 24, time_step: str = "hour"
+    country_code: str, time_range_hours: int = 24, time_step: str = "hour"
 ) -> None:
     """
-    Fetches historical carbon intensity data for the given region.
+    Fetches historical carbon intensity data for the given country.
 
-    :param region_code: Region code (e.g., 'DE' for Germany).
+    :param country_code: Country code (e.g., 'DE' for Germany).
     :param time_range_hours: The number of hours back
     from the current time to fetch data. Defaults to 24.
     :param time_step: The granularity of the data ('hour', 'minute', 'day').
@@ -87,7 +87,7 @@ def fetch_recent_carbon_data(
     to_timestamp = int(now.timestamp())
 
     url = f"https://api.electricitymap.org/v3/carbon-intensity/\
-        history?zone={region_code}&from={from_timestamp}&to={to_timestamp}\
+        history?zone={country_code}&from={from_timestamp}&to={to_timestamp}\
             &time_step={time_step}"
 
     response = requests.get(url, headers=headers)
@@ -95,8 +95,8 @@ def fetch_recent_carbon_data(
     if response.status_code == 200:
         data = response.json()
 
-        region, _ = Region.objects.get_or_create(
-            code=region_code, defaults={"name": data.get("zoneName", region_code)}
+        country, _ = Country.objects.get_or_create(
+            code=country_code, defaults={"name": data.get("zoneName", country_code)}
         )
 
         substance, _ = Substance.objects.get_or_create(name="CO2")
@@ -112,10 +112,10 @@ def fetch_recent_carbon_data(
             carbon_intensity = entry["carbonIntensity"]
 
             if not RealtimeEnvironmentalRecord.objects.filter(
-                region=region, timestamp=timestamp
+                country=country, timestamp=timestamp
             ).exists():
                 RealtimeEnvironmentalRecord.objects.create(
-                    region=region,
+                    country=country,
                     substance=substance,
                     value=carbon_intensity,
                     timestamp=timestamp,
@@ -123,11 +123,11 @@ def fetch_recent_carbon_data(
                 )
 
         print(
-            f"Historical data fetched and saved for region \
-                {region_code} from {time_range_hours} hours ago"
+            f"Historical data fetched and saved for country \
+                {country_code} from {time_range_hours} hours ago"
         )
     else:
         print(
-            f"Failed to fetch historical data for region \
-                {region_code}: {response.status_code}"
+            f"Failed to fetch historical data for country \
+                {country_code}: {response.status_code}"
         )
