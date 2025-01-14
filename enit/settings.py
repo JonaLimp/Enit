@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "rest_framework",
     "django_filters",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -55,6 +56,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
 ROOT_URLCONF = "enit.urls"
@@ -164,3 +167,5 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 86400.0,
     },
 }
+
+CORS_ALLOW_ALL_ORIGINS = True
