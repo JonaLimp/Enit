@@ -21,7 +21,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("environmental_data/", include("environmental_data.urls")),
+    path("environmental-data/", include("environmental_data.urls")),
 ]
 
 if settings.DEBUG:

@@ -4,19 +4,24 @@ from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.utils import timezone
 
-# from environmental_data.management.commands import import_emissions_data
-
 from environmental_data.models import (
-    HistoricalEnvironmentalRecord,
     RealtimeEnvironmentalRecord,
-    Country,
-    Sector,
-    Substance,
 )
 from environmental_data.tasks import (
     fetch_realtime_carbon_data,
     fetch_recent_carbon_data,
 )
+
+
+from environmental_data.models import (
+    HistoricalEnvironmentalRecord,
+    Country,
+    Sector,
+    Substance,
+)
+from environmental_data.views import CountryTotalDataView
+from rest_framework.test import APIRequestFactory
+
 
 from datetime import timezone as tz
 
@@ -145,84 +150,127 @@ class TestFetchRecentCarbonlData(TestCase):
         self.assertEqual(records.count(), 0)
 
 
-class HistoricalRecordFilterTests(TestCase):
-    def setUp(self):
-        # Create Countries
-        self.country1 = Country.objects.create(name="Germany", code="DE")
-        self.country2 = Country.objects.create(name="France", code="FR")
+class FilterTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Set up test data
+        cls.germany = Country.objects.create(name="Germany", code="DE")
+        cls.france = Country.objects.create(name="France", code="FR")
 
-        # Create Sectors
-        self.sector1 = Sector.objects.create(name="Energy")
-        self.sector2 = Sector.objects.create(name="Transport")
+        cls.energy = Sector.objects.create(name="Energy")
+        cls.transport = Sector.objects.create(name="Transport")
 
-        # Create Substances
-        self.substance1 = Substance.objects.create(name="CO2")
-        self.substance2 = Substance.objects.create(name="Methane")
+        cls.co2 = Substance.objects.create(name="CO2")
 
-        # Create Historical Records
         HistoricalEnvironmentalRecord.objects.create(
-            country=self.country1,
-            sector=self.sector1,
-            substance=self.substance1,
-            year=1990,
-            value=100.0,
+            country=cls.germany,
+            sector=cls.energy,
+            substance=cls.co2,
+            value=229639.50,
+            year=2020,
         )
         HistoricalEnvironmentalRecord.objects.create(
-            country=self.country1,
-            sector=self.sector2,
-            substance=self.substance2,
-            year=2000,
-            value=150.0,
+            country=cls.germany,
+            sector=cls.transport,
+            substance=cls.co2,
+            value=144180.14,
+            year=2021,
         )
         HistoricalEnvironmentalRecord.objects.create(
-            country=self.country2,
-            sector=self.sector1,
-            substance=self.substance1,
-            year=1985,
-            value=200.0,
+            country=cls.france,
+            sector=cls.energy,
+            substance=cls.co2,
+            value=38285.24,
+            year=2020,
         )
 
-    def test_filter_by_country_code(self):
-        response = self.client.get(
-            "/environmental_data/api/historical-data/", {"country": "DE"}
+    def test_filter_by_country(self):
+        # Use APIRequestFactory to generate a mock request
+        factory = APIRequestFactory()
+        request = factory.get(
+            "/environmental-data/api/total-environmental-data/", {"country": "DE"}
         )
+
+        # Attach the request to the view
+        view = CountryTotalDataView.as_view()
+
+        # Call the view and capture the response
+        response = view(request)
+
+        # Assert the response status code
         self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data), 2)  # Two records for country DE
-        self.assertTrue(all(record["country"]["code"] == "DE" for record in data))
 
-    def test_filter_by_sector(self):
-        response = self.client.get(
-            "/environmental_data/api/historical-data/", {"sector": "Energy"}
+        # Access the response data
+        data = response.data
+
+        # Assert the filtering worked
+        self.assertIn("Germany", data)
+        self.assertEqual(len(data["Germany"]["Total"]), 2)  # Two records for Germany
+
+    def test_filter_by_country_and_sector(self):
+        factory = APIRequestFactory()
+        request = factory.get(
+            "/environmental-data/api/total-environmental-data/",
+            {"country": "DE", "sector": "Energy"},
         )
+        view = CountryTotalDataView.as_view()
+        response = view(request)
+
+        # Assert the response
         self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data), 2)  # Two records for the Energy sector
-        self.assertTrue(all(record["sector"]["name"] == "Energy" for record in data))
+        data = response.data
+        self.assertIn("Germany", data)
+        self.assertEqual(len(data["Germany"]), 1)  # Only Energy sector for Germany
+
+    def test_filter_by_multiple_countries(self):
+        factory = APIRequestFactory()
+        request = factory.get(
+            "/environmental-data/api/total-environmental-data/", {"country": "DE,FR"}
+        )
+        view = CountryTotalDataView.as_view()
+        response = view(request)
+
+        # Assert the response
+        self.assertEqual(response.status_code, 200)
+        data = response.data
+        self.assertIn("Germany", data)
+        self.assertIn("France", data)
 
     def test_filter_by_year_range(self):
-        response = self.client.get(
-            "/environmental_data/api/historical-data/",
-            {"start_year": 1980, "end_year": 1995},
+        factory = APIRequestFactory()
+        request = factory.get(
+            "/environmental-data/api/total-environmental-data/",
+            {"country": "DE", "start_year": 2020, "end_year": 2021},
         )
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data), 2)  # Two records between 1980 and 1995
-        self.assertTrue(all(1980 <= record["year"] <= 1995 for record in data))
+        view = CountryTotalDataView.as_view()
+        response = view(request)
 
-    def test_combined_filters(self):
-        response = self.client.get(
-            "/environmental_data/api/historical-data/",
+        # Assert the response
+        self.assertEqual(response.status_code, 200)
+        data = response.data
+        self.assertIn("Germany", data)
+        self.assertEqual(
+            len(data["Germany"]["Total"]), 2
+        )  # Two years of data for Germany
+
+    def test_filter_by_all_parameters(self):
+        factory = APIRequestFactory()
+        request = factory.get(
+            "/environmental-data/api/total-environmental-data/",
             {
-                "country_code": "DE",
-                "sector": "Transport",
-                "start_year": 1990,
-                "end_year": 2010,
+                "country": "FR",
+                "sector": "Energy",
+                "start_year": 2020,
+                "end_year": 2020,
             },
         )
+        view = CountryTotalDataView.as_view()
+        response = view(request)
+
+        # Assert the response
         self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data), 1)  # One record matching all criteria
-        self.assertEqual(data[0]["country"]["code"], "DE")
-        self.assertEqual(data[0]["sector"]["name"], "Transport")
-        self.assertEqual(data[0]["year"], 2000)
+        data = response.data
+        self.assertIn("France", data)
+        self.assertEqual(
+            len(data["France"]["Total"]), 1
+        )  # One year of data for Energy in France
