@@ -127,13 +127,13 @@ class FilteredEnvironmentalDataView(ListAPIView):
         queryset = super().get_queryset()
         filter_data = self.request.query_params
 
-        country_codes = filter_data.get("country", "").split(",")
+        country_names = filter_data.get("country", "").split(",")
         sectors = filter_data.get("sector", "").split(",")
         start_year = filter_data.get("start_year")
         end_year = filter_data.get("end_year")
 
-        if country_codes and country_codes != [""]:
-            queryset = queryset.filter(country__code__in=country_codes)
+        if country_names and country_names != [""]:
+            queryset = queryset.filter(country__name__in=country_names)
 
         sectors = [sector.strip() for sector in sectors if sector.strip()]
         if sectors:
