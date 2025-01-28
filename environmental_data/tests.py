@@ -188,7 +188,7 @@ class FilterTests(TestCase):
         # Use APIRequestFactory to generate a mock request
         factory = APIRequestFactory()
         request = factory.get(
-            "/environmental-data/api/total-environmental-data/", {"country": "DE"}
+            "/environmental-data/api/total-environmental-data/", {"country": "Germany"}
         )
 
         # Attach the request to the view
@@ -211,7 +211,7 @@ class FilterTests(TestCase):
         factory = APIRequestFactory()
         request = factory.get(
             "/environmental-data/api/total-environmental-data/",
-            {"country": "DE", "sector": "Energy"},
+            {"country": "Germany", "sector": "Energy"},
         )
         view = CountryTotalDataView.as_view()
         response = view(request)
@@ -225,7 +225,8 @@ class FilterTests(TestCase):
     def test_filter_by_multiple_countries(self):
         factory = APIRequestFactory()
         request = factory.get(
-            "/environmental-data/api/total-environmental-data/", {"country": "DE,FR"}
+            "/environmental-data/api/total-environmental-data/",
+            {"country": "Germany,France"},
         )
         view = CountryTotalDataView.as_view()
         response = view(request)
@@ -240,7 +241,7 @@ class FilterTests(TestCase):
         factory = APIRequestFactory()
         request = factory.get(
             "/environmental-data/api/total-environmental-data/",
-            {"country": "DE", "start_year": 2020, "end_year": 2021},
+            {"country": "Germany", "start_year": 2020, "end_year": 2021},
         )
         view = CountryTotalDataView.as_view()
         response = view(request)
@@ -258,7 +259,7 @@ class FilterTests(TestCase):
         request = factory.get(
             "/environmental-data/api/total-environmental-data/",
             {
-                "country": "FR",
+                "country": "France",
                 "sector": "Energy",
                 "start_year": 2020,
                 "end_year": 2020,
