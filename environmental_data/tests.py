@@ -185,27 +185,21 @@ class FilterTests(TestCase):
         )
 
     def test_filter_by_country(self):
-        # Use APIRequestFactory to generate a mock request
         factory = APIRequestFactory()
         request = factory.get(
             "/environmental-data/api/total-environmental-data/", {"country": "Germany"}
         )
 
-        # Attach the request to the view
         view = CountryTotalDataView.as_view()
 
-        # Call the view and capture the response
         response = view(request)
 
-        # Assert the response status code
         self.assertEqual(response.status_code, 200)
 
-        # Access the response data
         data = response.data
 
-        # Assert the filtering worked
         self.assertIn("Germany", data)
-        self.assertEqual(len(data["Germany"]["Total"]), 2)  # Two records for Germany
+        self.assertEqual(len(data["Germany"]["Total"]), 2)
 
     def test_filter_by_country_and_sector(self):
         factory = APIRequestFactory()
@@ -216,11 +210,10 @@ class FilterTests(TestCase):
         view = CountryTotalDataView.as_view()
         response = view(request)
 
-        # Assert the response
         self.assertEqual(response.status_code, 200)
         data = response.data
         self.assertIn("Germany", data)
-        self.assertEqual(len(data["Germany"]), 1)  # Only Energy sector for Germany
+        self.assertEqual(len(data["Germany"]), 1)
 
     def test_filter_by_multiple_countries(self):
         factory = APIRequestFactory()
@@ -231,7 +224,6 @@ class FilterTests(TestCase):
         view = CountryTotalDataView.as_view()
         response = view(request)
 
-        # Assert the response
         self.assertEqual(response.status_code, 200)
         data = response.data
         self.assertIn("Germany", data)
@@ -246,13 +238,10 @@ class FilterTests(TestCase):
         view = CountryTotalDataView.as_view()
         response = view(request)
 
-        # Assert the response
         self.assertEqual(response.status_code, 200)
         data = response.data
         self.assertIn("Germany", data)
-        self.assertEqual(
-            len(data["Germany"]["Total"]), 2
-        )  # Two years of data for Germany
+        self.assertEqual(len(data["Germany"]["Total"]), 2)
 
     def test_filter_by_all_parameters(self):
         factory = APIRequestFactory()
@@ -268,10 +257,7 @@ class FilterTests(TestCase):
         view = CountryTotalDataView.as_view()
         response = view(request)
 
-        # Assert the response
         self.assertEqual(response.status_code, 200)
         data = response.data
         self.assertIn("France", data)
-        self.assertEqual(
-            len(data["France"]["Total"]), 1
-        )  # One year of data for Energy in France
+        self.assertEqual(len(data["France"]["Total"]), 1)
