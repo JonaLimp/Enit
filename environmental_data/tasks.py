@@ -52,15 +52,11 @@ def fetch_realtime_carbon_data(country_code: str) -> None:
             value=data["carbonIntensity"],
             timestamp=timezone.now(),
         )
-        print(
-            f"Fetched data for country \
-                {country_code}: {response.status_code}"
-        )
+        print(f"Fetched data for country \
+                {country_code}: {response.status_code}")
     else:
-        print(
-            f"Failed to fetch data for country \
-                {country_code}: {response.status_code}"
-        )
+        print(f"Failed to fetch data for country \
+                {country_code}: {response.status_code}")
 
 
 def fetch_recent_carbon_data(
@@ -122,12 +118,8 @@ def fetch_recent_carbon_data(
                     sector=sector,
                 )
 
-        print(
-            f"Historical data fetched and saved for country \
-                {country_code} from {time_range_hours} hours ago"
-        )
+        print(f"Historical data fetched and saved for country \
+                {country_code} from {time_range_hours} hours ago")
     else:
-        print(
-            f"Failed to fetch historical data for country \
-                {country_code}: {response.status_code}"
-        )
+        print(f"Failed to fetch historical data for country \
+                {country_code}: {response.status_code}")
